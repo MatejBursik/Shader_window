@@ -1,0 +1,14 @@
+- Style 1 (Mini ramp)
+ .:-=+*#%@
+
+- Style 2 (Ramp)
+ ."~!+:vcIow0XP$#RB@
+
+- Style 3 (Terminal ramp)
+ .'`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$
+
+- Style 4 (Braille)
+ ⠁ ⠃ ⠇ ⠧ ⠷ ⠿
+
+- Style 5 (Blocks)
+ ░▒▓█

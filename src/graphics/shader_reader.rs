@@ -82,6 +82,18 @@ impl ShaderReader {
         }
     }
 
+    pub fn set_vec2_i32_uniform(&self, uniform_name: &str, x: i32, y: i32) {
+        unsafe {
+            gl::Uniform2i(self.uniform_ids[uniform_name], x, y);
+        }
+    }
+
+    pub fn set_vec2_f32_uniform(&self, uniform_name: &str, x: f32, y: f32) {
+        unsafe {
+            gl::Uniform2f(self.uniform_ids[uniform_name], x, y);
+        }
+    }
+
     pub fn set_matrix4fv_uniform(&self, uniform_name: &str, matrix: &cgmath::Matrix4<f32>) {
         unsafe {
             gl::UniformMatrix4fv(self.uniform_ids[uniform_name], 1, gl::FALSE, matrix.as_ptr())
