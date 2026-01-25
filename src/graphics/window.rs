@@ -92,4 +92,10 @@ impl Window {
             }
         }
     }
+
+    pub fn get_window_size(&self) -> (f32, f32) {
+        let (width, height) = self.window_handle.get_size();
+
+        (width as f32, height as f32)
+    }
 }
