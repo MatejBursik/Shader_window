@@ -54,15 +54,24 @@ fn main() {
 
     // Load image as a texture
     let texture = texture::Texture::load("assets/test_image_train.jpg").expect("Failed to load texture");
-    let glyph_texture = texture::Texture::load("shaders/ascii/glyph_texture_v2_(16x16x11).png").expect("Failed to load texture"); // FIX: load only for ascii
+    let glyph_texture = texture::Texture::load("shaders/ascii/glyph_texture_v2-edge_(16x16x15).png").expect("Failed to load texture"); // FIX: load only for ascii
 
     // Load selected shaders
     let selected_shader: SelectShader = SelectShader::Ascii;
     let mut shader: shader_reader::ShaderReader;
 
     match selected_shader {
+        SelectShader::EdgeDetect => {
+            shader = shader_reader::ShaderReader::new("shaders/edge_detect/vertex_shader.glsl", "shaders/edge_detect/fragment_shader.glsl");
+            shader.bind();
+
+            let (w, h) = window.get_window_size();
+            shader.create_uniform("resolution");
+            shader.set_vec2_f32_uniform("resolution", w, h);
+        }
+
         SelectShader::Ascii => {
-            shader = shader_reader::ShaderReader::new("shaders/ascii/vertex_shader.glsl", "shaders/ascii/fragment_shader.glsl");
+            shader = shader_reader::ShaderReader::new("shaders/ascii/vertex_shader.glsl", "shaders/ascii/fragment_shader_with_edge.glsl");
             shader.bind();
 
             shader.create_uniform("img_texture");
@@ -79,10 +88,13 @@ fn main() {
             shader.set_vec2_f32_uniform("cell_size", 8.0, 8.0);
 
             shader.create_uniform("font_grid");
-            shader.set_vec2_i32_uniform("font_grid", 11, 1);
+            shader.set_vec2_i32_uniform("font_grid", 15, 1);
 
             shader.create_uniform("glyph_count");
-            shader.set_int_uniform("glyph_count", 11);
+            shader.set_int_uniform("glyph_count", 15);
+
+            shader.create_uniform("edge_threshold");
+            shader.set_float_uniform("edge_threshold", 0.8);
         }
 
         SelectShader::Pixel => {

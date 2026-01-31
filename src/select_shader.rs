@@ -3,5 +3,6 @@ pub enum SelectShader {
     None,
     Test,
     Pixel,
-    Ascii
+    Ascii,
+    EdgeDetect
 }
