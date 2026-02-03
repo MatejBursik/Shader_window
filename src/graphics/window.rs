@@ -107,14 +107,22 @@ impl Window {
         }
     }
 
-    pub fn get_window_size(&self) -> (f32, f32) {
-        let (width, height) = self.window_handle.get_size();
-
-        (width as f32, height as f32)
+    pub fn get_window_size(&self) -> (i32, i32) {
+        self.windowed_size
     }
 
-    pub fn set_window_size(&mut self, size: (u32, u32)) {
-        self.window_handle.set_size(size.0 as i32, size.1 as i32);
+    pub fn set_window_size(&mut self, size: (i32, i32)) {
+        self.window_handle.set_size(size.0, size.1);
+        self.windowed_size = (size.0, size.1);
+    }
+
+    pub fn get_window_pos(&self) -> (i32, i32) {
+        self.windowed_pos
+    }
+
+    pub fn set_window_pos(&mut self, pos: (i32, i32)) {
+        self.window_handle.set_pos(pos.0, pos.1);
+        self.windowed_pos = (pos.0 as i32, pos.1 as i32);
     }
 
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
