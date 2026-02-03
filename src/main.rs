@@ -109,7 +109,7 @@ fn main() {
                 
                 let (w, h) = window.get_window_size();
                 shader.create_uniform("resolution");
-                shader.set_vec2_f32_uniform("resolution", w, h);
+                shader.set_vec2_f32_uniform("resolution", w as f32, h as f32);
             }
 
             SelectShader::Ascii => {
@@ -117,7 +117,7 @@ fn main() {
 
                 let (w, h) = window.get_window_size();
                 shader.create_uniform("resolution");
-                shader.set_vec2_f32_uniform("resolution", w, h);
+                shader.set_vec2_f32_uniform("resolution", w as f32, h as f32);
 
                 glyph_texture.bind(gl::TEXTURE1);
             }
@@ -127,7 +127,7 @@ fn main() {
 
                 let (w, h) = window.get_window_size();
                 shader.create_uniform("resolution");
-                shader.set_vec2_f32_uniform("resolution", w, h);
+                shader.set_vec2_f32_uniform("resolution", w as f32, h as f32);
             }
 
             SelectShader::Test => {

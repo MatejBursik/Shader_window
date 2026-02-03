@@ -2,8 +2,8 @@ use image::GenericImageView;
 
 pub struct Texture {
     id: u32,
-    width: u32,
-    height: u32
+    width: i32,
+    height: i32
 }
 
 impl Texture {
@@ -28,7 +28,7 @@ impl Texture {
             gl::BindTexture(gl::TEXTURE_2D, 0);
         }
         
-        Ok(Texture { id, width, height })
+        Ok(Texture { id, width: width as i32, height: height as i32 })
     }
     
     pub fn bind(&self, texture_id: u32) {
@@ -44,7 +44,7 @@ impl Texture {
         }
     }
 
-    pub fn get_texture_size(&self) -> (u32, u32) {
+    pub fn get_texture_size(&self) -> (i32, i32) {
         (self.width, self.height)
     }
 }

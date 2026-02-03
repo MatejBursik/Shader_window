@@ -29,7 +29,7 @@ pub fn load_test_image(index: &mut usize) -> texture::Texture{
     texture::Texture::load(test_images[*index]).expect("Failed to load texture")
 }
 
-pub fn load_shader(selected_shader: &SelectShader, size: (f32,f32)) -> shader_reader::ShaderReader {
+pub fn load_shader(selected_shader: &SelectShader, size: (i32, i32)) -> shader_reader::ShaderReader {
     let mut shader: shader_reader::ShaderReader;
 
     match selected_shader {
@@ -38,7 +38,7 @@ pub fn load_shader(selected_shader: &SelectShader, size: (f32,f32)) -> shader_re
             shader.bind();
 
             shader.create_uniform("resolution");
-            shader.set_vec2_f32_uniform("resolution", size.0, size.1);
+            shader.set_vec2_f32_uniform("resolution", size.0 as f32, size.1 as f32);
         }
 
         SelectShader::Ascii => {
@@ -52,7 +52,7 @@ pub fn load_shader(selected_shader: &SelectShader, size: (f32,f32)) -> shader_re
             shader.set_int_uniform("font_texture", 1);
 
             shader.create_uniform("resolution");
-            shader.set_vec2_f32_uniform("resolution", size.0, size.1);
+            shader.set_vec2_f32_uniform("resolution", size.0 as f32, size.1 as f32);
 
             shader.create_uniform("cell_size");
             shader.set_vec2_f32_uniform("cell_size", 8.0, 8.0);
@@ -72,7 +72,7 @@ pub fn load_shader(selected_shader: &SelectShader, size: (f32,f32)) -> shader_re
             shader.bind();
 
             shader.create_uniform("resolution");
-            shader.set_vec2_f32_uniform("resolution", size.0, size.1);
+            shader.set_vec2_f32_uniform("resolution", size.0 as f32, size.1 as f32);
 
             shader.create_uniform("cell_size");
             shader.set_vec2_f32_uniform("cell_size", 8.0, 8.0);
