@@ -43,4 +43,8 @@ impl Texture {
             gl::DeleteTextures(1, &self.id);
         }
     }
+
+    pub fn get_texture_size(&self) -> (u32, u32) {
+        (self.width, self.height)
+    }
 }

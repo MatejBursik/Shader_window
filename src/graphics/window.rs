@@ -5,7 +5,12 @@ pub struct Window {
     glfw: glfw::Glfw,
     window_handle: glfw::PWindow,
     events: glfw::GlfwReceiver<(f64, WindowEvent)>,
-    keys_pressed: HashSet<Key>
+    keys_pressed: HashSet<Key>,
+    keys_released: HashSet<Key>,
+    windowed_pos: (i32, i32),
+    windowed_size: (i32, i32),
+    fullscreen: bool,
+    overlay_mode: bool
 }
 
 impl Window {
@@ -17,7 +22,9 @@ impl Window {
         window.set_framebuffer_size_polling(true);
         window.set_key_polling(true);
 
-        Window {glfw, window_handle: window, events, keys_pressed: HashSet::new()}
+        let (w, h) = window.get_size();
+
+        Window {glfw, window_handle: window, events, keys_pressed: HashSet::new(), keys_released: HashSet::new(), windowed_pos: (0, 0), windowed_size: (w, h), fullscreen: false, overlay_mode: false}
     }
 
     pub fn init_gl(&mut self) {
@@ -42,6 +49,8 @@ impl Window {
     }
 
     fn process_events(&mut self) {
+        self.keys_released.clear();
+        
         for (_, event) in glfw::flush_messages(&self.events) {
             match event {
                 glfw::WindowEvent::FramebufferSize(width, height) => {
@@ -59,6 +68,7 @@ impl Window {
 
                     Action::Release => {
                         self.keys_pressed.remove(&key);
+                        self.keys_released.insert(key);
                     },
 
                     _ => {}
@@ -71,6 +81,10 @@ impl Window {
 
     pub fn is_key_pressed(&self, key: Key) -> bool {
         self.keys_pressed.contains(&key)
+    }
+
+    pub fn is_key_released(&self, key: Key) -> bool {
+        self.keys_released.contains(&key)
     }
 
     pub fn set_fps(&mut self, interval: i32) {
@@ -97,5 +111,76 @@ impl Window {
         let (width, height) = self.window_handle.get_size();
 
         (width as f32, height as f32)
+    }
+
+    pub fn set_window_size(&mut self, size: (u32, u32)) {
+        self.window_handle.set_size(size.0 as i32, size.1 as i32);
+    }
+
+    pub fn set_fullscreen(&mut self, fullscreen: bool) {
+        if fullscreen == self.fullscreen {
+            return;
+        }
+
+        if fullscreen {
+            // save windowed state
+            self.windowed_pos = self.window_handle.get_pos();
+            self.windowed_size = self.window_handle.get_size();
+
+            self.glfw.with_primary_monitor(|_, m| {
+                let monitor = m.expect("No primary monitor");
+                let mode = monitor.get_video_mode().unwrap();
+
+                self.window_handle.set_monitor(glfw::WindowMode::FullScreen(&monitor), 0, 0, mode.width, mode.height, Some(mode.refresh_rate));
+            });
+        } else {
+            let (x, y) = self.windowed_pos;
+            let (w, h) = self.windowed_size;
+
+            self.window_handle.set_monitor(glfw::WindowMode::Windowed, x, y, w as u32, h as u32, None);
+        }
+
+        self.fullscreen = fullscreen;
+    }
+
+    pub fn set_borderless_fullscreen(&mut self, enable: bool) {
+        if enable {
+            // Save windowed state
+            self.windowed_pos = self.window_handle.get_pos();
+            self.windowed_size = self.window_handle.get_size();
+
+            if self.fullscreen {
+                self.set_fullscreen(false);
+            }
+
+            self.glfw.with_primary_monitor(|_, m| {
+                let monitor = m.expect("No primary monitor");
+                let mode = monitor.get_video_mode().unwrap();
+
+                self.window_handle.set_decorated(!enable);
+                self.window_handle.set_pos(0, 0);
+                self.window_handle.set_size(mode.width as i32, mode.height as i32);
+            });
+        } else {
+            // Restore
+            self.window_handle.set_decorated(!enable);
+
+            let (x, y) = self.windowed_pos;
+            let (w, h) = self.windowed_size;
+
+            self.window_handle.set_pos(x, y);
+            self.window_handle.set_size(w, h);
+        }
+    }
+
+    pub fn set_overlay_mode(&mut self, enable: bool) {
+        self.window_handle.set_floating(enable);
+        self.window_handle.set_mouse_passthrough(enable);
+        self.set_borderless_fullscreen(enable);
+    }
+
+    pub fn toggle_overlay_mode(&mut self) {
+        self.overlay_mode = !self.overlay_mode;
+        self.set_overlay_mode(self.overlay_mode);
     }
 }

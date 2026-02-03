@@ -1,11 +1,14 @@
 use std::ptr;
 use std::time::Instant;
+use glfw::Key;
 
 mod graphics;
 mod select_shader;
+mod help_functions;
 
 use graphics::*;
 use select_shader::SelectShader;
+use help_functions::*;
 
 fn main() {
     let mut window = window::Window::new(1280, 720, "Window");
@@ -53,76 +56,17 @@ fn main() {
     }
 
     // Load image as a texture
-    let texture = texture::Texture::load("assets/test_image_train.jpg").expect("Failed to load texture");
+    let mut texture_idx: usize = 0;
+    let mut texture = load_test_image(&mut texture_idx);
+    window.set_window_size(texture.get_texture_size());
+
     let glyph_texture = texture::Texture::load("shaders/ascii/glyph_texture_v2-edge_(16x16x15).png").expect("Failed to load texture"); // FIX: load only for ascii
 
     // Load selected shaders
-    let selected_shader: SelectShader = SelectShader::Ascii;
-    let mut shader: shader_reader::ShaderReader;
-
-    match selected_shader {
-        SelectShader::EdgeDetect => {
-            shader = shader_reader::ShaderReader::new("shaders/edge_detect/vertex_shader.glsl", "shaders/edge_detect/fragment_shader.glsl");
-            shader.bind();
-
-            let (w, h) = window.get_window_size();
-            shader.create_uniform("resolution");
-            shader.set_vec2_f32_uniform("resolution", w, h);
-        }
-
-        SelectShader::Ascii => {
-            shader = shader_reader::ShaderReader::new("shaders/ascii/vertex_shader.glsl", "shaders/ascii/fragment_shader_with_edge.glsl");
-            shader.bind();
-
-            shader.create_uniform("img_texture");
-            shader.set_int_uniform("img_texture", 0);
-
-            shader.create_uniform("font_texture");
-            shader.set_int_uniform("font_texture", 1);
-
-            let (w, h) = window.get_window_size();
-            shader.create_uniform("resolution");
-            shader.set_vec2_f32_uniform("resolution", w, h);
-
-            shader.create_uniform("cell_size");
-            shader.set_vec2_f32_uniform("cell_size", 8.0, 8.0);
-
-            shader.create_uniform("font_grid");
-            shader.set_vec2_i32_uniform("font_grid", 15, 1);
-
-            shader.create_uniform("glyph_count");
-            shader.set_int_uniform("glyph_count", 15);
-
-            shader.create_uniform("edge_threshold");
-            shader.set_float_uniform("edge_threshold", 0.8);
-        }
-
-        SelectShader::Pixel => {
-            shader = shader_reader::ShaderReader::new("shaders/pixel/vertex_shader.glsl", "shaders/pixel/fragment_shader.glsl");
-            shader.bind();
-
-            let (w, h) = window.get_window_size();
-            shader.create_uniform("resolution");
-            shader.set_vec2_f32_uniform("resolution", w, h);
-
-            shader.create_uniform("cell_size");
-            shader.set_vec2_f32_uniform("cell_size", 8.0, 8.0);
-        }
-
-        SelectShader::Test => {
-            shader = shader_reader::ShaderReader::new("shaders/test/vertex_shader.glsl", "shaders/test/fragment_shader.glsl");
-            shader.bind();
-
-            shader.create_uniform("time");
-            shader.set_float_uniform("time", 0.0);
-        }
-
-        _ => {
-            shader = shader_reader::ShaderReader::new("shaders/none/vertex_shader.glsl", "shaders/none/fragment_shader.glsl");
-            shader.bind();
-        }
-    }
+    let mut selected_shader: SelectShader = SelectShader::None;
+    let mut shader: shader_reader::ShaderReader = load_shader(&selected_shader, window.get_window_size());
     
+    // Time difference setup
     let mut last_frame = Instant::now();
     let mut time: f32 = 0.0;
 
@@ -133,11 +77,57 @@ fn main() {
         last_frame = now;
         time += dt;
 
+        // User inputs
+        if window.is_key_pressed(Key::LeftControl) {
+            if window.is_key_pressed(Key::LeftAlt) {
+                if window.is_key_released(Key::O) {
+                    // Toggle overlay mode
+                    window.toggle_overlay_mode();
+                }
+                
+                if window.is_key_pressed(Key::N) {
+                    if window.is_key_released(Key::I) {
+                        // Next test image
+                        texture_idx += 1;
+                        texture = load_test_image(&mut texture_idx);
+                        window.set_window_size(texture.get_texture_size());
+                    }
+
+                    if window.is_key_released(Key::S) {
+                        // Next shader
+                        selected_shader = selected_shader.next();
+                        shader = load_shader(&selected_shader, window.get_window_size());
+                    }
+                }
+            }
+        }
+
         // Update shaders and textures
         match selected_shader {
+            SelectShader::EdgeDetect => {
+                shader.bind();
+                
+                let (w, h) = window.get_window_size();
+                shader.create_uniform("resolution");
+                shader.set_vec2_f32_uniform("resolution", w, h);
+            }
+
             SelectShader::Ascii => {
                 shader.bind();
+
+                let (w, h) = window.get_window_size();
+                shader.create_uniform("resolution");
+                shader.set_vec2_f32_uniform("resolution", w, h);
+
                 glyph_texture.bind(gl::TEXTURE1);
+            }
+
+            SelectShader::Pixel => {
+                shader.bind();
+
+                let (w, h) = window.get_window_size();
+                shader.create_uniform("resolution");
+                shader.set_vec2_f32_uniform("resolution", w, h);
             }
 
             SelectShader::Test => {
