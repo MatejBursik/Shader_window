@@ -1,19 +1,28 @@
 use std::ptr;
 use std::time::Instant;
 use glfw::Key;
+use glfw::ffi::glfwShowWindow;
 
 mod graphics;
+mod capture;
 mod select_shader;
+mod select_mode;
 mod help_functions;
 
 use graphics::*;
+use capture::*;
 use select_shader::SelectShader;
+use select_mode::SelectMode;
 use help_functions::*;
 
 fn main() {
     let mut window = window::Window::new(1280, 720, "Window");
     window.init_gl();
     window.set_fps(1);
+
+    unsafe {
+        glfwShowWindow(window.get_window_ptr());
+    }
 
     let mut vao = 0;
     let mut vbo = 0;
@@ -55,12 +64,17 @@ fn main() {
         gl::BindVertexArray(0);
     }
 
+    // Setup screen capture
+    let mut select_mode = SelectMode::Image;
+    capture_settings(window.get_window_ptr());
+    let mut capture = ScreenCapture::new();
+
     // Load image as a texture
     let mut texture_idx: usize = 0;
     let mut texture = load_test_image(&mut texture_idx);
     window.set_window_size(texture.get_texture_size());
 
-    let glyph_texture = texture::Texture::load("shaders/ascii/glyph_texture_v2-edge_(16x16x15).png").expect("Failed to load texture"); // FIX: load only for ascii
+    let glyph_texture = texture::Texture::load_file("shaders/ascii/glyph_texture_v2-edge_(16x16x15).png").expect("Failed to load texture"); // FIX: load only for ascii
 
     // Load selected shaders
     let mut selected_shader: SelectShader = SelectShader::None;
@@ -80,6 +94,16 @@ fn main() {
         // User inputs
         if window.is_key_pressed(Key::LeftControl) {
             if window.is_key_pressed(Key::LeftAlt) {
+                if window.is_key_released(Key::C) {
+                    // Toggle capture and image modes
+                    select_mode = select_mode.next();
+
+                    if select_mode == SelectMode::Image {
+                        texture = load_test_image(&mut texture_idx);
+                        window.set_window_size(texture.get_texture_size());
+                    }
+                }
+
                 if window.is_key_released(Key::O) {
                     // Toggle overlay mode
                     window.toggle_overlay_mode();
@@ -88,9 +112,11 @@ fn main() {
                 if window.is_key_pressed(Key::N) {
                     if window.is_key_released(Key::I) {
                         // Next test image
-                        texture_idx += 1;
-                        texture = load_test_image(&mut texture_idx);
-                        window.set_window_size(texture.get_texture_size());
+                        if select_mode == SelectMode::Image {
+                            texture_idx += 1;
+                            texture = load_test_image(&mut texture_idx);
+                            window.set_window_size(texture.get_texture_size());
+                        }
                     }
 
                     if window.is_key_released(Key::S) {
@@ -100,6 +126,13 @@ fn main() {
                     }
                 }
             }
+        }
+
+        if select_mode == SelectMode::ScreenCapture {
+            let (w, h) = window.get_window_size();
+            let (x, y) = window.get_window_pos();
+            
+            texture = capture.get_frame((w as usize, h as usize), (x as usize, y as usize)).clone();
         }
 
         // Update shaders and textures
