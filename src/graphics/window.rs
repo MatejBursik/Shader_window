@@ -1,4 +1,5 @@
-use glfw::{Action, Context, Key, WindowEvent};
+use glfw::{ Action, Context, Key, WindowEvent };
+use glfw::ffi::GLFWwindow;
 use std::collections::HashSet;
 
 pub struct Window {
@@ -24,7 +25,7 @@ impl Window {
 
         let (w, h) = window.get_size();
 
-        Window {glfw, window_handle: window, events, keys_pressed: HashSet::new(), keys_released: HashSet::new(), windowed_pos: (0, 0), windowed_size: (w, h), fullscreen: false, overlay_mode: false}
+        Window { glfw, window_handle: window, events, keys_pressed: HashSet::new(), keys_released: HashSet::new(), windowed_pos: (0, 0), windowed_size: (w, h), fullscreen: false, overlay_mode: false }
     }
 
     pub fn init_gl(&mut self) {
@@ -108,7 +109,7 @@ impl Window {
     }
 
     pub fn get_window_size(&self) -> (i32, i32) {
-        self.windowed_size
+        self.window_handle.get_size()
     }
 
     pub fn set_window_size(&mut self, size: (i32, i32)) {
@@ -117,7 +118,7 @@ impl Window {
     }
 
     pub fn get_window_pos(&self) -> (i32, i32) {
-        self.windowed_pos
+        self.window_handle.get_pos()
     }
 
     pub fn set_window_pos(&mut self, pos: (i32, i32)) {
@@ -190,5 +191,9 @@ impl Window {
     pub fn toggle_overlay_mode(&mut self) {
         self.overlay_mode = !self.overlay_mode;
         self.set_overlay_mode(self.overlay_mode);
+    }
+
+    pub fn get_window_ptr(&self) -> *mut GLFWwindow {
+        self.window_handle.window_ptr()
     }
 }

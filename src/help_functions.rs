@@ -26,7 +26,7 @@ pub fn load_test_image(index: &mut usize) -> texture::Texture{
         *index = 0;
     }
 
-    texture::Texture::load(test_images[*index]).expect("Failed to load texture")
+    texture::Texture::load_file(test_images[*index]).expect("Failed to load texture")
 }
 
 pub fn load_shader(selected_shader: &SelectShader, size: (i32, i32)) -> shader_reader::ShaderReader {
