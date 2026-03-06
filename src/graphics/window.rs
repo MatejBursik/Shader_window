@@ -1,5 +1,6 @@
 use glfw::{ Action, Context, Key, WindowEvent };
 use glfw::ffi::GLFWwindow;
+use glfw::WindowMode::{ Windowed, FullScreen};
 use std::collections::HashSet;
 
 pub struct Window {
@@ -18,7 +19,7 @@ impl Window {
     pub fn new(width: u32, height: u32, title: &str) -> Window {
         let mut glfw = glfw::init_no_callbacks().unwrap();
 
-        let (mut window, events) = glfw.create_window(width, height, title, glfw::WindowMode::Windowed).expect("Failed to create window!");
+        let (mut window, events) = glfw.create_window(width, height, title, Windowed).expect("Failed to create window!");
 
         window.set_framebuffer_size_polling(true);
         window.set_key_polling(true);
@@ -140,13 +141,13 @@ impl Window {
                 let monitor = m.expect("No primary monitor");
                 let mode = monitor.get_video_mode().unwrap();
 
-                self.window_handle.set_monitor(glfw::WindowMode::FullScreen(&monitor), 0, 0, mode.width, mode.height, Some(mode.refresh_rate));
+                self.window_handle.set_monitor(FullScreen(&monitor), 0, 0, mode.width, mode.height, Some(mode.refresh_rate));
             });
         } else {
             let (x, y) = self.windowed_pos;
             let (w, h) = self.windowed_size;
 
-            self.window_handle.set_monitor(glfw::WindowMode::Windowed, x, y, w as u32, h as u32, None);
+            self.window_handle.set_monitor(Windowed, x, y, w as u32, h as u32, None);
         }
 
         self.fullscreen = fullscreen;
