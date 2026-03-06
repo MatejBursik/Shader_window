@@ -105,8 +105,13 @@ fn main() {
                 }
 
                 if window.is_key_released(Key::O) {
-                    // Toggle overlay mode
+                    // Toggle overlay mode on/off
                     window.toggle_overlay_mode();
+                }
+
+                if window.is_key_released(Key::S) {
+                    // Toggle share window on/off
+                    println!("Toggle share window on/off (not implemented yet)")
                 }
                 
                 if window.is_key_pressed(Key::N) {
