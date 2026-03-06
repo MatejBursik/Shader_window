@@ -1,6 +1,16 @@
 # Shader_window
 Overlay applicaiton which adds custom effects to the desktop.
 
+## Controls
+| Key | Description |
+|---|---|
+| `Ctrl + Alt + C` | Toggle capture and image modes |
+| `Ctrl + Alt + O` | Toggle overlay mode on/off |
+| `Ctrl + Alt + S` | Toggle share window on/off |
+| `Ctrl + Alt + N + I` | Switch to next test image |
+| `Ctrl + Alt + N + S` | Switch to next shader |
+*`Ctrl` and `Alt` refer to the left versions of the keys.*
+
 ## Inspired by:
 - [Shader Glass](https://store.steampowered.com/app/3613770/ShaderGlass/) : Tool for applying shader effects on top of Windows desktop for gaming, pixel art and video. Made by Mausimus, available on Steam.
 - [Acerola](https://www.youtube.com/@Acerola_t) : Professional shader artist, graphics programmer, and game developer.
