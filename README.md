@@ -9,6 +9,7 @@ Overlay applicaiton which adds custom effects to the desktop.
 | `Ctrl + Alt + S` | Toggle share window on/off |
 | `Ctrl + Alt + N + I` | Switch to next test image |
 | `Ctrl + Alt + N + S` | Switch to next shader |
+
 *`Ctrl` and `Alt` refer to the left versions of the keys.*
 
 ## Inspired by:
