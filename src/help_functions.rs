@@ -94,3 +94,20 @@ pub fn load_shader(selected_shader: &SelectShader, size: (i32, i32)) -> shader_r
 
     shader
 }
+
+pub fn rgb_downscale_by_factor(src: &[u8], w: usize, h: usize, f: usize) -> (Vec<u8>, usize, usize) {
+    let new_w = w / f;
+    let new_h = h / f;
+    let mut img = Vec::with_capacity(new_w * new_h * 3);
+
+    for y in 0..new_h {
+        for x in 0..new_w {
+            let i = ((y * f) * w + (x * f)) * 3;
+            img.push(src[i]);
+            img.push(src[i + 1]);
+            img.push(src[i + 2]);
+        }
+    }
+
+    (img, new_w, new_h)
+}

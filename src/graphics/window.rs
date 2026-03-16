@@ -122,11 +122,6 @@ impl Window {
         self.window_handle.get_pos()
     }
 
-    pub fn set_window_pos(&mut self, pos: (i32, i32)) {
-        self.window_handle.set_pos(pos.0, pos.1);
-        self.windowed_pos = (pos.0 as i32, pos.1 as i32);
-    }
-
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
         if fullscreen == self.fullscreen {
             return;
@@ -196,5 +191,18 @@ impl Window {
 
     pub fn get_window_ptr(&self) -> *mut GLFWwindow {
         self.window_handle.window_ptr()
+    }
+
+    pub fn read_pixels(&self) -> Vec<u8> {
+        // Read framebuffer before swap
+        let (w, h) = self.window_handle.get_framebuffer_size();
+        let mut pixels = vec![0u8; (w * h * 3) as usize]; // RGB = 3 bytes per pixel
+
+        unsafe {
+            gl::PixelStorei(gl::PACK_ALIGNMENT, 1); // Rows tightly packed (needed for RGB, not for RGBA)
+            gl::ReadPixels(0, 0, w, h, gl::RGB, gl::UNSIGNED_BYTE, pixels.as_mut_ptr() as *mut _);
+        }
+
+        pixels
     }
 }
