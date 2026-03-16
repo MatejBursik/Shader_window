@@ -83,7 +83,7 @@ impl Texture {
 
     pub fn unbind(&self) {
         unsafe {
-            gl::DeleteTextures(1, &self.id);
+            gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }
 

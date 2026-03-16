@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sharing page</title>
+    </head>
+    
+    <body>
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+            }
+
+            #stream {
+                height: 100%;
+                transform: scaleY(-1);
+            }
+        </style>
+
+        <img id="stream" />
+        <p>FPS: <span id="fps"></span></p>
+        
+        <script>
+            const img = document.getElementById("stream");
+            const fps = document.getElementById("fps");
+
+            let frameCount = 0;
+            let lastTime = performance.now();
+
+            setInterval(() => {
+                const now = performance.now();
+                const elapsed = (now - lastTime) / 1000;
+                fps.textContent = (frameCount / elapsed).toFixed(1);
+                frameCount = 0;
+                lastTime = now;
+            }, 500);
+
+            const ws = new WebSocket("ws://localhost:3000/ws");
+            ws.binaryType = "arraybuffer";
+
+            let busy = false;
+
+            ws.onmessage = async (ev) => {
+                if (busy) return; // drop frames if still rendering
+                busy = true;
+
+                const buf = new Uint8Array(ev.data);
+
+                // Convert RGB buffer into an blob for img
+                const blob = new Blob([buf], { type: "image/jpeg" });
+                const url = URL.createObjectURL(blob);
+
+                img.onload = () => URL.revokeObjectURL(url);
+                img.src = url;
+
+                busy = false;
+                frameCount++;
+            };
+        </script>
+    </body>
+</html>

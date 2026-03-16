@@ -1,18 +1,23 @@
 use std::ptr;
 use std::time::Instant;
+use std::sync::mpsc;
 use glfw::Key;
 use glfw::ffi::glfwShowWindow;
+use tokio::sync::broadcast;
+use mozjpeg::{ Compress, ColorSpace };
 
 mod graphics;
 mod capture;
 mod select_shader;
 mod select_mode;
+mod web_socket;
 mod help_functions;
 
 use graphics::*;
 use capture::*;
 use select_shader::SelectShader;
 use select_mode::SelectMode;
+use web_socket::start_server;
 use help_functions::*;
 
 fn main() {
@@ -64,6 +69,38 @@ fn main() {
         gl::BindVertexArray(0);
     }
 
+    // Setup web socket for window sharing
+    let mut share_window = false;
+    let (tx, _rx) = broadcast::channel::<Vec<u8>>(4); // FIX: connection breaks when app window is minimised
+    start_server(tx.clone());
+    let mut frame: Vec<u8>;
+
+    // Setup encoder thread
+    let (frame_tx, frame_rx) = mpsc::sync_channel::<(Vec<u8>, i32, i32)>(1); // bound of 1 = drop if busy
+    let tx_clone = tx.clone();
+
+    std::thread::spawn(move || {
+        while let Ok((frame, w, h)) = frame_rx.recv() {
+            let start = Instant::now();
+
+            // Reduce resolution before encoding
+            let (frame, w, h) = rgb_downscale_by_factor(&frame, w as usize, h as usize, 2);
+
+            // Encode RGB frame to jpeg
+            let mut comp = Compress::new(ColorSpace::JCS_RGB);
+            comp.set_fastest_defaults();
+            comp.set_size(w as usize, h as usize);
+            comp.set_quality(100.0); // 60 is recommended but with downscale, text becomes completely unreadable and helped with maybe 2-5ms
+            //comp.set_chroma_sampling_pixel_sizes((2,2), (2,2)); // 4:2:0 chroma subsampling helped with maybe 2-5ms but worse quality
+            let mut comp = comp.start_compress(Vec::new()).unwrap();
+            comp.write_scanlines(&frame).unwrap();
+            let compressed = comp.finish().unwrap();
+
+            let _ = tx_clone.send(compressed);
+            println!("encode: {:?}", start.elapsed());
+        }
+    });
+    
     // Setup screen capture
     let mut select_mode = SelectMode::Image;
     capture_settings(window.get_window_ptr());
@@ -111,7 +148,8 @@ fn main() {
 
                 if window.is_key_released(Key::S) {
                     // Toggle share window on/off
-                    println!("Toggle share window on/off (not implemented yet)")
+                    share_window = !share_window;
+                    println!("Toggle share server: {}", share_window)
                 }
                 
                 if window.is_key_pressed(Key::N) {
@@ -124,8 +162,8 @@ fn main() {
                         }
                     }
 
-                    if window.is_key_released(Key::S) {
-                        // Next shader
+                    if window.is_key_released(Key::E) {
+                        // Next shader/effect
                         selected_shader = selected_shader.next();
                         shader = load_shader(&selected_shader, window.get_window_size());
                     }
@@ -180,7 +218,7 @@ fn main() {
 
         texture.bind(gl::TEXTURE0);
 
-        // Draw
+        // Draw to window
         unsafe {
             gl::ClearColor(0.0, 0.0, 0.0, 0.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -190,6 +228,15 @@ fn main() {
             gl::BindVertexArray(0);
         }
 
+        if share_window && tx.receiver_count() > 0 {
+            // Load pixels from the window into a variable
+            let (w, h) = window.get_window_size();
+            frame = window.read_pixels(); // Vec<u8> RGB
+
+            // Try_send - if the encoder thread is still busy, drop the frame
+            let _ = frame_tx.try_send((frame, w, h));
+        }
+        
         window.update();
     }
 }
