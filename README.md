@@ -34,3 +34,7 @@ Overlay applicaiton which adds custom effects to the desktop.
 - **Shader** : CRT effect
 - **Shader** : Difference of Gaussians ([reference](https://www.youtube.com/watch?v=5EuYKEvugLU))
 - **Shader** : Cross hatch art style effect
+- **Shader** : DVD screensaver
+- **Shader** : Bloom effect
+- **Shader** : Vinniette effect
+- **Shader** : Bayer dithering effect
