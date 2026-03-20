@@ -29,7 +29,7 @@ Overlay applicaiton which adds custom effects to the desktop.
 - **Shader**: Pixel art style effect
 
 ## TODO:
-- **App development** : Toolbar menu / Update controls
+- **App development** : Toolbar menu / Settings window / Update controls
 - **App development** : Desktop capture (Linux solution)
 - **Shader** : CRT effect
 - **Shader** : Difference of Gaussians ([reference](https://www.youtube.com/watch?v=5EuYKEvugLU))
